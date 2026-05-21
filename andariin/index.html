@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Andariin Sign In</title>
+  <style>
+    :root {
+      --bg: #101014;
+      --panel: #1b1b22;
+      --text: #f4f4f5;
+      --muted: #a1a1aa;
+      --line: #3f3f46;
+      --accent: #8b5cf6;
+      --button: #16161f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: radial-gradient(circle at top, #1d1d2f, #0c0c11 45%);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      width: 100%;
+      max-width: 520px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 28px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.35);
+    }
+    h1 { margin-top: 0; letter-spacing: 1px; }
+    p { color: var(--muted); line-height: 1.6; }
+    .button-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+    button { background: var(--accent); color: white; border: none; border-radius: 12px; padding: 14px 18px; cursor: pointer; font-weight: bold; flex: 1; }
+    button.secondary { background: var(--button); border: 1px solid var(--line); }
+    .info { margin-top: 18px; padding: 16px; border-radius: 12px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); }
+    .info label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    .info input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: #171721; color: var(--text); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Andariin Account</h1>
+    <p>Sign in or create an account to open the Expressionist Character Sheet. After signing in, you will be redirected to the main sheet.</p>
+
+    <div class="button-row">
+      <button onclick="signIn()">Sign In / Sign Up</button>
+      <button class="secondary" onclick="signOut()">Sign Out</button>
+    </div>
+
+    <div class="info">
+      <label>Signed in as</label>
+      <input id="signedInUser" readonly value="Guest" />
+      <label>Account Status</label>
+      <input id="accountStatus" readonly value="Not signed in" />
+    </div>
+  </div>
+
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <script>
+    function updateUI() {
+      const signedInUser = document.getElementById('signedInUser');
+      const accountStatus = document.getElementById('accountStatus');
+      const user = window.netlifyIdentity.currentUser();
+      signedInUser.value = user?.email || 'Guest';
+      accountStatus.value = user ? 'Signed in' : 'Not signed in';
+    }
+
+    function signIn() {
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.open();
+      } else {
+        alert('Netlify Identity is not available until this site is deployed on Netlify.');
+      }
+    }
+
+    function signOut() {
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.logout();
+      }
+    }
+
+    function initIdentity() {
+      if (!window.netlifyIdentity) return;
+      window.netlifyIdentity.on('login', () => {
+        updateUI();
+        window.location.href = '/';
+      });
+      window.netlifyIdentity.on('logout', () => {
+        updateUI();
+      });
+      window.netlifyIdentity.init();
+      updateUI();
+      if (window.netlifyIdentity.currentUser()) {
+        window.location.href = '/';
+      }
+    }
+
+    initIdentity();
+  </script>
+</body>
+</html>

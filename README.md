@@ -17,6 +17,8 @@ Open `index.html` in a browser or serve it with a simple static server.
 This version includes a Netlify Identity sign-in widget for account-scoped storage.
 To use it, deploy the site on Netlify and enable Identity in the site dashboard.
 
+Visit `/andariin` to sign in or create an account; after login you will be redirected to the main sheet.
+
 ## Remote sync across devices
 
 Remote sync uses a Netlify Function that stores account data in a GitHub repository file.

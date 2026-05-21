@@ -635,6 +635,12 @@
       setRemoteFilePath('remote-characters/' + currentIdentityUser.email.replace(/[^a-zA-Z0-9._-]/g, '_').toLowerCase() + '.json');
     }
 
+    function redirectIfNotSignedIn() {
+      if (!currentIdentityUser && !window.location.pathname.startsWith('/andariin')) {
+        window.location.href = '/andariin';
+      }
+    }
+
     function initIdentity() {
       if (!window.netlifyIdentity) return;
       window.netlifyIdentity.on('login', user => {
@@ -646,11 +652,14 @@
       window.netlifyIdentity.on('logout', () => {
         currentIdentityUser = null;
         updateAccountUI();
-        loadCurrentCharacter();
+        if (!window.location.pathname.startsWith('/andariin')) {
+          window.location.href = '/andariin';
+        }
       });
       window.netlifyIdentity.init();
       currentIdentityUser = window.netlifyIdentity.currentUser();
       updateAccountUI();
+      redirectIfNotSignedIn();
     }
 
     function signIn() {
