@@ -494,8 +494,8 @@
       </div>
       <div class="button-row" style="margin-top: 12px; justify-content: flex-start;">
         <button onclick="window.location.href='/signin'">Go to Account</button>
-        <button onclick="syncToAccount()">Sync to Account</button>
-        <button class="secondary" onclick="loadFromAccount()">Load from Account</button>
+        <button id="syncButton" onclick="syncToAccount()">Sync to Account</button>
+        <button id="loadButton" class="secondary" onclick="loadFromAccount()">Load from Account</button>
       </div>
     </section>
   </main>
@@ -586,6 +586,49 @@
       if (remoteFilePath) remoteFilePath.value = path || 'None';
     }
 
+    function setRemoteSyncButtons(enabled) {
+      const syncButton = document.getElementById('syncButton');
+      const loadButton = document.getElementById('loadButton');
+      if (syncButton) syncButton.disabled = !enabled;
+      if (loadButton) loadButton.disabled = !enabled;
+    }
+
+    function disableRemoteSync(message) {
+      setRemoteSyncStatus(message || 'Remote sync unavailable');
+      setRemoteSyncButtons(false);
+    }
+
+    async function checkRemoteSyncAvailability() {
+      if (!currentIdentityUser) {
+        setRemoteSyncButtons(false);
+        return;
+      }
+      setRemoteSyncStatus('Checking...');
+      try {
+        const res = await fetchWithIdentity('/.netlify/functions/character-sync');
+        const text = await res.text();
+        let result = null;
+        try {
+          result = JSON.parse(text);
+        } catch {}
+
+        if (res.status === 500 && result?.error?.includes('Missing GITHUB_REPO or GITHUB_TOKEN')) {
+          disableRemoteSync('Remote sync not configured');
+          return;
+        }
+
+        if (res.ok || res.status === 404) {
+          setRemoteSyncButtons(true);
+          setRemoteSyncStatus(currentIdentityUser ? 'Ready' : 'Disabled');
+          return;
+        }
+
+        disableRemoteSync('Remote sync unavailable');
+      } catch (error) {
+        disableRemoteSync('Remote sync unavailable');
+      }
+    }
+
     async function syncToAccount() {
       if (!currentIdentityUser) {
         alert('Please sign in to sync to your account.');
@@ -610,8 +653,12 @@
       });
       const result = await res.json();
       if (!res.ok) {
-        setRemoteSyncStatus('Save failed');
-        alert('Remote sync failed: ' + (result.error || res.statusText));
+        if (result?.error?.includes('Missing GITHUB_REPO or GITHUB_TOKEN')) {
+          disableRemoteSync('Remote sync not configured');
+        } else {
+          setRemoteSyncStatus('Save failed');
+          alert('Remote sync failed: ' + (result.error || res.statusText));
+        }
         return;
       }
       setRemoteSyncStatus('Saved');
@@ -627,8 +674,12 @@
       const res = await fetchWithIdentity('/.netlify/functions/character-sync');
       const result = await res.json();
       if (!res.ok) {
-        setRemoteSyncStatus('Load failed');
-        alert('Remote load failed: ' + (result.error || res.statusText));
+        if (result?.error?.includes('Missing GITHUB_REPO or GITHUB_TOKEN')) {
+          disableRemoteSync('Remote sync not configured');
+        } else {
+          setRemoteSyncStatus('Load failed');
+          alert('Remote load failed: ' + (result.error || res.statusText));
+        }
         return;
       }
       if (result.characters) {
@@ -657,11 +708,13 @@
         currentIdentityUser = user;
         updateAccountUI();
         loadCurrentCharacter();
+        checkRemoteSyncAvailability();
         window.netlifyIdentity.close();
       });
       window.netlifyIdentity.on('logout', () => {
         currentIdentityUser = null;
         updateAccountUI();
+        setRemoteSyncButtons(false);
         if (!window.location.pathname.startsWith('/signin')) {
           window.location.href = '/signin';
         }
@@ -669,6 +722,7 @@
       window.netlifyIdentity.init();
       currentIdentityUser = window.netlifyIdentity.currentUser();
       updateAccountUI();
+      checkRemoteSyncAvailability();
       redirectIfNotSignedIn();
     }
 
