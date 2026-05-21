@@ -493,8 +493,7 @@
         <div></div>
       </div>
       <div class="button-row" style="margin-top: 12px; justify-content: flex-start;">
-        <button onclick="signIn()">Sign In</button>
-        <button class="secondary" onclick="signOut()">Sign Out</button>
+        <button onclick="window.location.href='/andariin'">Go to Account</button>
         <button onclick="syncToAccount()">Sync to Account</button>
         <button class="secondary" onclick="loadFromAccount()">Load from Account</button>
       </div>
@@ -673,19 +672,7 @@
       redirectIfNotSignedIn();
     }
 
-    function signIn() {
-      if (window.netlifyIdentity) {
-        window.netlifyIdentity.open();
-      } else {
-        alert('Netlify Identity is not available. Deploy on Netlify and enable Identity to use sign-in.');
-      }
-    }
 
-    function signOut() {
-      if (window.netlifyIdentity) {
-        window.netlifyIdentity.logout();
-      }
-    }
 
     function getProficiencyBonus() {
       const lvl = Math.max(1, Math.min(20, num('level')));
