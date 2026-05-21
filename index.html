@@ -519,6 +519,14 @@
       return value >= 0 ? '+' + value : String(value);
     }
 
+    function guestModeActive() {
+      return localStorage.getItem('andariinGuestMode') === 'true';
+    }
+
+    function clearGuestMode() {
+      localStorage.removeItem('andariinGuestMode');
+    }
+
     let currentIdentityUser = null;
 
     function getUserStorageKey() {
@@ -636,6 +644,9 @@
     }
 
     function redirectIfNotSignedIn() {
+      if (guestModeActive()) {
+        return;
+      }
       if (!currentIdentityUser && !window.location.pathname.startsWith('/andariin')) {
         window.location.href = '/andariin';
       }

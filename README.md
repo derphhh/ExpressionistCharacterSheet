@@ -19,6 +19,8 @@ To use it, deploy the site on Netlify and enable Identity in the site dashboard.
 
 Visit `/andariin` to sign in or create an account; after login you will be redirected to the main sheet.
 
+If you see `Failed to load settings from /.netlify/identity`, it means Netlify Identity is not enabled or the site is not deployed on Netlify yet. In that case, use the guest option on the sign-in page to continue locally.
+
 ## Remote sync across devices
 
 Remote sync uses a Netlify Function that stores account data in a GitHub repository file.

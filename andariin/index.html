@@ -53,6 +53,7 @@
     <div class="button-row">
       <button onclick="signIn()">Sign In / Sign Up</button>
       <button class="secondary" onclick="signOut()">Sign Out</button>
+      <button class="secondary" id="guestButton" onclick="continueAsGuest()" disabled>Continue as Guest</button>
     </div>
 
     <div class="info">
@@ -60,11 +61,25 @@
       <input id="signedInUser" readonly value="Guest" />
       <label>Account Status</label>
       <input id="accountStatus" readonly value="Not signed in" />
+      <label>Identity status</label>
+      <input id="identityStatus" readonly value="Checking..." />
     </div>
   </div>
 
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
   <script>
+    let identityAvailable = false;
+
+    function setGuestButton(enabled) {
+      const guestButton = document.getElementById('guestButton');
+      if (guestButton) guestButton.disabled = !enabled;
+    }
+
+    function setIdentityStatus(message) {
+      const identityStatus = document.getElementById('identityStatus');
+      if (identityStatus) identityStatus.value = message;
+    }
+
     function updateUI() {
       const signedInUser = document.getElementById('signedInUser');
       const accountStatus = document.getElementById('accountStatus');
@@ -73,7 +88,34 @@
       accountStatus.value = user ? 'Signed in' : 'Not signed in';
     }
 
+    async function checkIdentity() {
+      try {
+        const res = await fetch('/.netlify/identity');
+        if (res.ok) {
+          identityAvailable = true;
+          setIdentityStatus('Identity available');
+          setGuestButton(false);
+          return;
+        }
+      } catch (e) {
+        // ignore
+      }
+      identityAvailable = false;
+      setIdentityStatus('Identity not available. Deploy on Netlify and enable Identity.');
+      setGuestButton(true);
+    }
+
     function signIn() {
+      if (!identityAvailable) {
+        alert('Netlify Identity is not currently available. Deploy on Netlify and enable Identity, or continue as guest.');
+        return;
+      }
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.open();
+      } else {
+        alert('Netlify Identity is not available until this site is deployed on Netlify.');
+      }
+    }
       if (window.netlifyIdentity) {
         window.netlifyIdentity.open();
       } else {
@@ -87,10 +129,16 @@
       }
     }
 
+    async function continueAsGuest() {
+      localStorage.setItem('andariinGuestMode', 'true');
+      window.location.href = '/';
+    }
+
     function initIdentity() {
       if (!window.netlifyIdentity) return;
       window.netlifyIdentity.on('login', () => {
         updateUI();
+        localStorage.removeItem('andariinGuestMode');
         window.location.href = '/';
       });
       window.netlifyIdentity.on('logout', () => {
@@ -98,6 +146,7 @@
       });
       window.netlifyIdentity.init();
       updateUI();
+      checkIdentity();
       if (window.netlifyIdentity.currentUser()) {
         window.location.href = '/';
       }
