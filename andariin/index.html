@@ -123,8 +123,8 @@
     }
 
     function redirectToAppRoot() {
-      const path = window.location.pathname.replace(/\/index\.html$/, '/');
-      window.location.href = window.location.origin + path;
+      // Always redirect to the main app at root
+      window.location.href = window.location.origin + '/';
     }
 
     async function continueAsGuest() {
