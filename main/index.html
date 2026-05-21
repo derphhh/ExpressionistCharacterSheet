@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Expressionist Character Sheet</title>
+  <style>
+    :root {
+      --bg: #101014;
+      --panel: #1b1b22;
+      --panel-2: #252530;
+      --text: #f4f4f5;
+      --muted: #a1a1aa;
+      --line: #3f3f46;
+      --accent: #8b5cf6;
+      --danger: #ef4444;
+      --good: #22c55e;
+      --warning: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 24px;
+    }
+
+    h1, h2, h3 {
+      margin-top: 0;
+    }
+
+    h1 {
+      text-align: center;
+      letter-spacing: 1px;
+      margin-bottom: 24px;
+    }
+
+    .sheet {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      gap: 18px;
+    }
+
+    .section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .grid-6 {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 9px;
+      font-size: 14px;
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    .stat-card {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .stat-card input {
+      text-align: center;
+      font-size: 22px;
+      font-weight: bold;
+      margin-top: 8px;
+    }
+
+    .derived-card {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .derived-value {
+      font-size: 24px;
+      font-weight: bold;
+      margin-top: 4px;
+    }
+
+    .manual-mod {
+      margin-top: 8px;
+      display: grid;
+      grid-template-columns: 1fr 70px;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .manual-mod label {
+      margin: 0;
+      font-size: 12px;
+    }
+
+    .manual-mod input {
+      text-align: center;
+      padding: 6px;
+    }
+
+    .info-label {
+      cursor: pointer;
+      text-decoration: underline dotted;
+      position: relative;
+    }
+
+    .tooltip {
+      display: none;
+      position: absolute;
+      z-index: 10;
+      background: #0f0f14;
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      width: 260px;
+      font-size: 13px;
+      line-height: 1.35;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      margin-top: 6px;
+    }
+
+    .info-label:hover .tooltip,
+    .info-label:focus .tooltip {
+      display: block;
+    }
+
+    .tooltip strong {
+      display: block;
+      color: white;
+      margin-bottom: 4px;
+    }
+
+    .tooltip code {
+      display: block;
+      margin-top: 6px;
+      color: #c4b5fd;
+      white-space: normal;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 8px;
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: normal;
+      font-size: 13px;
+    }
+
+    .aether-bar-wrap {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      height: 28px;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .aether-bar {
+      height: 100%;
+      width: 0%;
+      background: var(--good);
+      transition: width 0.2s ease;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    button {
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button.secondary {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+    }
+
+    .expression-card {
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    @media (max-width: 800px) {
+      body {
+        padding: 12px;
+      }
+
+      .grid-2,
+      .grid-3,
+      .grid-6 {
+        grid-template-columns: 1fr;
+      }
+
+      button {
+        width: 100%;
+        padding: 13px 14px;
+      }
+
+      .button-row {
+        flex-direction: column;
+      }
+
+      th, td {
+        font-size: 13px;
+        padding: 7px 4px;
+      }
+    }
+
+    @media print {
+      body {
+        background: white;
+        color: black;
+        padding: 0;
+      }
+
+      .section, .stat-card, .derived-card, .expression-card {
+        background: white;
+        color: black;
+        border-color: #999;
+      }
+
+      input, select, textarea {
+        background: white;
+        color: black;
+        border-color: #999;
+      }
+
+      button, .button-row {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="sheet">
+    <h1>Expressionist Character Sheet</h1>
+
+    <section class="section">
+      <h2>Character Information</h2>
+      <div class="grid-3">
+        <div><label>Name</label><input id="charName" /></div>
+        <div><label>Alias</label><input id="alias" /></div>
+        <div><label>Level</label><input id="level" type="number" value="1" min="1" max="20" /></div>
+        <div><label>Age</label><input id="age" /></div>
+        <div><label>Pathways</label><input id="pathways" placeholder="Soma, Neuro, Bio..." /></div>
+        <div><label>Build Quality</label>
+          <select id="buildQuality">
+            <option>Well Built</option>
+            <option>Mixed Build</option>
+            <option>Divergent Build</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Attribute Point Buy</h2>
+      <p style="color: var(--muted); margin-top: 0;">All attributes start at 5. Starting characters receive 20 Attribute Points. Character creation maximum is 15 unless the GM allows otherwise.</p>
+      <div class="grid-3">
+        <div class="derived-card"><label class="info-label" tabindex="0">Starting Attribute Points<span class="tooltip"><strong>Starting Attribute Points</strong>The normal starting amount used to buy attributes above 5.<code>Default: 20</code></span></label><input id="startingAttributePoints" type="number" value="20" /></div>
+        <div class="derived-card"><label class="info-label" tabindex="0">Points Spent<span class="tooltip"><strong>Points Spent</strong>Total point-buy cost of current attributes above 5. Costs become more expensive after 10.<code>Based on point-buy table</code></span></label><div id="attributePointsSpent" class="derived-value">0</div></div>
+        <div class="derived-card"><label class="info-label" tabindex="0">Points Remaining<span class="tooltip"><strong>Points Remaining</strong>Starting Attribute Points minus Points Spent. Negative means the character is over budget.<code>Starting Points - Points Spent</code></span></label><div id="attributePointsRemaining" class="derived-value">20</div></div>
+        <div class="derived-card"><label class="info-label" tabindex="0">Growth Points Earned<span class="tooltip"><strong>Growth Points Earned</strong>Growth Points are gained when leveling and can be spent on attributes or other upgrades.<code>(Level - 1) × 2</code></span></label><div id="growthPointsEarned" class="derived-value">0</div></div>
+        <div class="derived-card"><label class="info-label" tabindex="0">Level-Up Attribute Cost<span class="tooltip"><strong>Level-Up Attribute Cost</strong>Cost to raise an attribute by 1 during leveling. Higher scores cost more.<code>5-8: 1, 9-11: 2, 12-14: 3, 15-17: 4, 18-19: 5</code></span></label><input readonly id="levelUpCostNote" value="5-8:1 | 9-11:2 | 12-14:3 | 15-17:4 | 18-19:5" /></div>
+        <div class="derived-card"><label class="info-label" tabindex="0">Point Buy Status<span class="tooltip"><strong>Point Buy Status</strong>Shows whether the current attributes fit inside the starting point budget.</span></label><input readonly id="pointBuyStatus" value="Valid" /></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Attributes</h2>
+      <div class="grid-6">
+        <div class="stat-card"><label class="info-label" tabindex="0">Body<span class="tooltip"><strong>Body</strong>Raw strength, durability, endurance, pain tolerance and physical resilience. Soma and Bio expressions can increase this.</span></label><input class="attribute" id="body" type="number" value="5" min="1" max="20" /></div>
+        <div class="stat-card"><label class="info-label" tabindex="0">Reflex<span class="tooltip"><strong>Reflex</strong>Speed, coordination, reaction time, aim, balance and evasive movement. Energetic expressions can increase this.</span></label><input class="attribute" id="reflex" type="number" value="5" min="1" max="20" /></div>
+        <div class="stat-card"><label class="info-label" tabindex="0">Mind<span class="tooltip"><strong>Mind</strong>Intelligence, memory, analysis, technical thinking and problem solving. Neuro expressions can increase this.</span></label><input class="attribute" id="mind" type="number" value="5" min="1" max="20" /></div>
+        <div class="stat-card"><label class="info-label" tabindex="0">Instinct<span class="tooltip"><strong>Instinct</strong>Awareness, intuition, danger sense, perception and subconscious survival reactions. Neuro expressions can increase this.</span></label><input class="attribute" id="instinct" type="number" value="5" min="1" max="20" /></div>
+        <div class="stat-card"><label class="info-label" tabindex="0">Presence<span class="tooltip"><strong>Presence</strong>Willpower, confidence, emotional force, charisma, intimidation and mental resilience under pressure.</span></label><input class="attribute" id="presence" type="number" value="5" min="1" max="20" /></div>
+        <div class="stat-card"><label class="info-label" tabindex="0">Control<span class="tooltip"><strong>Control</strong>Expression precision, regulation, pathway stability and aether efficiency. Concept expressions can increase this.</span></label><input class="attribute" id="control" type="number" value="5" min="1" max="20" /></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Pathway Bonuses</h2>
+      <p style="color: var(--muted); margin-top: 0;">Each expression gives a small static bonus based on its pathway. Having multiple expressions in the same pathway stacks the bonus, but also increases the Aether strain for using that pathway.</p>
+      <div class="grid-3">
+        <div class="derived-card"><label class="info-label" tabindex="0">Soma Expressions<span class="tooltip"><strong>Soma Bonus</strong>Each Soma expression adds +1 effective Body, up to +3. Soma also adds a small Health bonus, up to +3. Each extra Soma expression after the first increases AG strain when using Soma.</span></label><div id="somaCount" class="derived-value">0</div></div>
+        <div class="derived-card"><label class="info-label" tabindex="0">Neuro Expressions<span class="tooltip"><strong>Neuro Bonus</strong>Each Neuro expression adds +1 effective Mind and +1 effective Instinct, up to +3. Each extra Neuro expression after the first increases AG strain when using Neuro.</span></label><div id="neuroCount" class="derived-value">0</div></div>
+        <div class="derived-card"><label class="info-label" tabindex="0">Bio Expressions<span class="tooltip"><strong>Bio Bonus</strong>Each Bio expression adds +1 effective Body and +1 Stability, up to +3. Each extra Bio expression after the first increases AG strain when using Bio.</span></label><div id="bioCount" class="derived-value">0</div></div>
+        <div class="derived-card"><label class="info-label" tabindex="0">Energetic Expressions<span class="tooltip"><strong>Energetic Bonus</strong>Each Energetic expression adds +1 effective Reflex and +1 Expression Accuracy, up to +3. Each extra Energetic expression after the first increases AG strain when using Energetic.</span></label><div id="energeticCount" class="derived-value">0</div></div>
+        <div class="derived-card"><label class="info-label" tabindex="0">Concept Expressions<span class="tooltip"><strong>Concept Bonus</strong>Each Concept expression adds +1 effective Control and +1 Break Threshold, up to +3. Each extra Concept expression after the first increases AG strain when using Concept.</span></label><div id="conceptCount" class="derived-value">0</div></div>
+        <div class="derived-card"><label class="info-label" tabindex="0">Stacked Pathway AG Penalty<span class="tooltip"><strong>Stacked Pathway AG Penalty</strong>For each expression after the first in the same pathway, add +1 AG strain when using an expression from that pathway.</span></label><div id="pathwayAgPenalty" class="derived-value">0</div></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Derived Stats</h2>
+      <div class="grid-3">
+        <div class="derived-card"><label class="info-label" tabindex="0">Health<span class="tooltip"><strong>Health</strong>How much physical damage the character can take before going down. Manual bonus is added after the automatic calculation.<code>10 + effective Body + Level × 3 + Level² ÷ 5 + capped Soma bonus + manual bonus</code></span></label><div id="health" class="derived-value">0</div><div class="manual-mod"><label>Manual Bonus</label><input id="healthManual" type="number" value="0" /></div></div>
+        <div class="derived-card"><label class="info-label" tabindex="0">Initiative<span class="tooltip"><strong>Initiative</strong>The bonus added to initiative rolls when combat or danger begins. Manual bonus is added after the automatic calculation.<code>Reflex modifier + Instinct modifier + manual bonus</code></span></label><div id="initiative" class="derived-value">0</div><div class="manual-mod"><label>Manual Bonus</label><input id="initiativeManual" type="number" value="0" /></div></div>
+        <div class="derived-card"><label class="info-label" tabindex="0">Stability<span class="tooltip"><strong>Stability</strong>The character’s mental and neurological steadiness under stress. Manual bonus is added after the automatic calculation.<code>10 + Level + Level² ÷ 10 + Presence modifier + Control modifier + capped Bio bonus + manual bonus</code></span></label><div id="stability" class="derived-value">0</div><div class="manual-mod"><label>Manual Bonus</label><input id="stabilityManual" type="number" value="0" /></div></div>
+        <div class="derived-card"><label class="info-label" tabindex="0">Aether Capacity<span class="tooltip"><strong>Aether Capacity</strong>The size of the character’s aether pool. Manual bonus is added after the automatic calculation.<code>20 + Level × 3 + Level² ÷ 4 + Body modifier + Control modifier × 2 + manual bonus</code></span></label><div id="aetherCapacity" class="derived-value">0</div><div class="manual-mod"><label>Manual Bonus</label><input id="aetherCapacityManual" type="number" value="0" /></div></div>
+        <div class="derived-card"><label class="info-label" tabindex="0">Aether Recovery<span class="tooltip"><strong>Aether Recovery</strong>How much aether is removed at the beginning of the character’s turn. Manual bonus is added after the automatic calculation.<code>1 + Level ÷ 3 + half of Body mod + Presence mod + Control mod + manual bonus, minimum 1</code></span></label><div id="aetherRecovery" class="derived-value">0</div><div class="manual-mod"><label>Manual Bonus</label><input id="aetherRecoveryManual" type="number" value="0" /></div></div>
+        <div class="derived-card"><label class="info-label" tabindex="0">Expression Accuracy<span class="tooltip"><strong>Expression Accuracy</strong>The bonus used when aiming or precisely applying expressions. Manual bonus is added after the automatic calculation.<code>Control modifier + best of Reflex/Mind modifier + Proficiency Bonus + capped Energetic bonus + manual bonus</code></span></label><div id="expressionAccuracy" class="derived-value">0</div><div class="manual-mod"><label>Manual Bonus</label><input id="expressionAccuracyManual" type="number" value="0" /></div></div>
+        <div class="derived-card"><label class="info-label" tabindex="0">Break Threshold<span class="tooltip"><strong>Break Threshold</strong>The bonus added to Break Checks when the character reaches 100% aether or higher. Manual bonus is added after the automatic calculation.<code>10 + half Level + Level ÷ 5 + Presence modifier + Control modifier + capped Concept bonus + manual bonus</code></span></label><div id="breakThreshold" class="derived-value">0</div><div class="manual-mod"><label>Manual Bonus</label><input id="breakThresholdManual" type="number" value="0" /></div></div>
+        <div class="derived-card"><label class="info-label" tabindex="0">Proficiency Bonus<span class="tooltip"><strong>Proficiency Bonus</strong>The bonus added to skill checks when the proficient box is checked.<code>+2 at level 1, +1 every 4 levels</code></span></label><div id="proficiencyBonus" class="derived-value">+2</div></div>
+        <div class="derived-card"><label class="info-label" tabindex="0">Max Power Level<span class="tooltip"><strong>Max Power Level</strong>The highest PL a character can normally put into one offensive expression attack. Each PL adds one Expression Die and one AG Die.<code>Level + 1</code></span></label><div id="maxPowerLevel" class="derived-value">2</div></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Aether Tracker</h2>
+      <div class="grid-3">
+        <div><label>Current Aether</label><input id="currentAether" type="number" value="0" min="0" /></div>
+        <div><label>Add Aether</label><input id="addAetherAmount" type="number" value="0" min="0" /></div>
+        <div><label>Threshold Status</label><input id="thresholdStatus" readonly /></div>
+      </div>
+      <div class="button-row" style="margin-top: 12px; justify-content: flex-start;">
+        <button onclick="addAether()">Add Aether</button>
+        <button class="secondary" onclick="recoverAether()">Start of Turn Recovery</button>
+        <button class="secondary" onclick="resetAether()">Reset Aether</button>
+      </div>
+      <div class="aether-bar-wrap"><div id="aetherBar" class="aether-bar"></div></div>
+    </section>
+
+    <section class="section">
+      <h2>Style Points</h2>
+      <p style="color: var(--muted); margin-top: 0;">Style Points are awarded for creative power use, cinematic choices, teamwork and risky thematic decisions.</p>
+      <div class="grid-3">
+        <div><label class="info-label" tabindex="0">Current Style Points<span class="tooltip"><strong>Style Points</strong>Spend these to remove AG dice, add attack dice, decrease Manifestation DC or create cinematic moments.</span></label><input id="stylePoints" type="number" value="0" min="0" /></div>
+        <div><label>Add / Spend Amount</label><input id="stylePointAmount" type="number" value="1" min="0" /></div>
+        <div><label>Common Uses</label><input readonly value="Remove AG dice, add attack dice, lower Manifestation DC" /></div>
+      </div>
+      <div class="button-row" style="margin-top: 12px; justify-content: flex-start;">
+        <button onclick="addStylePoints()">Add Style Points</button>
+        <button class="secondary" onclick="spendStylePoints()">Spend Style Points</button>
+        <button class="secondary" onclick="resetStylePoints()">Reset Style Points</button>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Skills</h2>
+      <p style="color: var(--muted); margin-top: 0;">Skill bonuses update automatically. If proficient is checked, the character adds their Proficiency Bonus to the relevant Attribute Modifier.</p>
+      <div class="grid-2">
+        <div>
+          <h3>Combat</h3>
+          <table>
+            <tr><th>Skill</th><th>Attribute</th><th>Proficient</th><th>Bonus</th></tr>
+            <tr><td><span class="info-label" tabindex="0">Hand-to-Hand<span class="tooltip"><strong>Hand-to-Hand</strong>Unarmed combat, grappling, striking, holds and close-quarters fighting.<code>Body modifier + proficiency if checked</code></span></span></td><td>Body</td><td><input class="skill-prof" data-attr="body" type="checkbox" /></td><td class="skill-bonus" data-attr="body">+0</td></tr>
+            <tr><td><span class="info-label" tabindex="0">Firearms<span class="tooltip"><strong>Firearms</strong>Aiming, recoil control, quick shooting and ranged weapon handling.<code>Reflex modifier + proficiency if checked</code></span></span></td><td>Reflex</td><td><input class="skill-prof" data-attr="reflex" type="checkbox" /></td><td class="skill-bonus" data-attr="reflex">+0</td></tr>
+            <tr><td><span class="info-label" tabindex="0">Melee Weapons<span class="tooltip"><strong>Melee Weapons</strong>Swords, knives, clubs, polearms and other weapon combat. Uses the better modifier between Body and Reflex.<code>Best of Body/Reflex modifier + proficiency if checked</code></span></span></td><td>Body/Reflex</td><td><input class="skill-prof" data-attr="body,reflex" type="checkbox" /></td><td class="skill-bonus" data-attr="body,reflex">+0</td></tr>
+            <tr><td><span class="info-label" tabindex="0">Mobility<span class="tooltip"><strong>Mobility</strong>Dodging, parkour, aerial movement, climbing, combat repositioning and movement under pressure.<code>Reflex modifier + proficiency if checked</code></span></span></td><td>Reflex</td><td><input class="skill-prof" data-attr="reflex" type="checkbox" /></td><td class="skill-bonus" data-attr="reflex">+0</td></tr>
+            <tr><td><span class="info-label" tabindex="0">Defense<span class="tooltip"><strong>Defense</strong>Blocking, parrying, evasive positioning and reducing incoming harm.<code>Reflex modifier + proficiency if checked</code></span></span></td><td>Reflex</td><td><input class="skill-prof" data-attr="reflex" type="checkbox" /></td><td class="skill-bonus" data-attr="reflex">+0</td></tr>
+          </table>
+        </div>
+        <div>
+          <h3>Knowledge</h3>
+          <table>
+            <tr><th>Skill</th><th>Attribute</th><th>Proficient</th><th>Bonus</th></tr>
+            <tr><td><span class="info-label" tabindex="0">Expression Theory<span class="tooltip"><strong>Expression Theory</strong>Understanding pathways, expression behavior, aether mechanics, tiers and power interactions.<code>Mind modifier + proficiency if checked</code></span></span></td><td>Mind</td><td><input class="skill-prof" data-attr="mind" type="checkbox" /></td><td class="skill-bonus" data-attr="mind">+0</td></tr>
+            <tr><td><span class="info-label" tabindex="0">Medicine<span class="tooltip"><strong>Medicine</strong>Trauma care, anatomy, diagnosis, surgery and biological understanding.<code>Mind modifier + proficiency if checked</code></span></span></td><td>Mind</td><td><input class="skill-prof" data-attr="mind" type="checkbox" /></td><td class="skill-bonus" data-attr="mind">+0</td></tr>
+            <tr><td><span class="info-label" tabindex="0">Engineering<span class="tooltip"><strong>Engineering</strong>Machines, electronics, construction, repairs, weapons, vehicles and technical design.<code>Mind modifier + proficiency if checked</code></span></span></td><td>Mind</td><td><input class="skill-prof" data-attr="mind" type="checkbox" /></td><td class="skill-bonus" data-attr="mind">+0</td></tr>
+            <tr><td><span class="info-label" tabindex="0">Investigation<span class="tooltip"><strong>Investigation</strong>Finding clues, reading evidence, understanding scenes and piecing information together.<code>Mind modifier + proficiency if checked</code></span></span></td><td>Mind</td><td><input class="skill-prof" data-attr="mind" type="checkbox" /></td><td class="skill-bonus" data-attr="mind">+0</td></tr>
+            <tr><td><span class="info-label" tabindex="0">Strategy<span class="tooltip"><strong>Strategy</strong>Planning, combat tactics, battlefield coordination and adapting to enemy powers. Uses the better modifier between Mind and Presence.<code>Best of Mind/Presence modifier + proficiency if checked</code></span></span></td><td>Mind/Presence</td><td><input class="skill-prof" data-attr="mind,presence" type="checkbox" /></td><td class="skill-bonus" data-attr="mind,presence">+0</td></tr>
+          </table>
+        </div>
+        <div>
+          <h3>Social</h3>
+          <table>
+            <tr><th>Skill</th><th>Attribute</th><th>Proficient</th><th>Bonus</th></tr>
+            <tr><td><span class="info-label" tabindex="0">Persuasion<span class="tooltip"><strong>Persuasion</strong>Convincing, negotiating, calming, inspiring and getting others to listen.<code>Presence modifier + proficiency if checked</code></span></span></td><td>Presence</td><td><input class="skill-prof" data-attr="presence" type="checkbox" /></td><td class="skill-bonus" data-attr="presence">+0</td></tr>
+            <tr><td><span class="info-label" tabindex="0">Intimidation<span class="tooltip"><strong>Intimidation</strong>Threatening, pressuring, dominating or making someone hesitate through force of personality.<code>Presence modifier + proficiency if checked</code></span></span></td><td>Presence</td><td><input class="skill-prof" data-attr="presence" type="checkbox" /></td><td class="skill-bonus" data-attr="presence">+0</td></tr>
+            <tr><td><span class="info-label" tabindex="0">Deception<span class="tooltip"><strong>Deception</strong>Lying, hiding intent, misdirection, manipulation and false presentation. Uses the better modifier between Presence and Mind.<code>Best of Presence/Mind modifier + proficiency if checked</code></span></span></td><td>Presence/Mind</td><td><input class="skill-prof" data-attr="presence,mind" type="checkbox" /></td><td class="skill-bonus" data-attr="presence,mind">+0</td></tr>
+            <tr><td><span class="info-label" tabindex="0">Leadership<span class="tooltip"><strong>Leadership</strong>Commanding groups, giving orders, maintaining morale and keeping allies focused.<code>Presence modifier + proficiency if checked</code></span></span></td><td>Presence</td><td><input class="skill-prof" data-attr="presence" type="checkbox" /></td><td class="skill-bonus" data-attr="presence">+0</td></tr>
+          </table>
+        </div>
+        <div>
+          <h3>Survival</h3>
+          <table>
+            <tr><th>Skill</th><th>Attribute</th><th>Proficient</th><th>Bonus</th></tr>
+            <tr><td><span class="info-label" tabindex="0">Perception<span class="tooltip"><strong>Perception</strong>Spotting hidden details, noticing danger, reading movement and sensing environmental changes.<code>Instinct modifier + proficiency if checked</code></span></span></td><td>Instinct</td><td><input class="skill-prof" data-attr="instinct" type="checkbox" /></td><td class="skill-bonus" data-attr="instinct">+0</td></tr>
+            <tr><td><span class="info-label" tabindex="0">Stealth<span class="tooltip"><strong>Stealth</strong>Moving quietly, hiding, avoiding attention and staying unseen while repositioning.<code>Reflex modifier + proficiency if checked</code></span></span></td><td>Reflex</td><td><input class="skill-prof" data-attr="reflex" type="checkbox" /></td><td class="skill-bonus" data-attr="reflex">+0</td></tr>
+            <tr><td><span class="info-label" tabindex="0">Tracking<span class="tooltip"><strong>Tracking</strong>Following trails, reading movement patterns, locating targets and understanding signs of passage.<code>Instinct modifier + proficiency if checked</code></span></span></td><td>Instinct</td><td><input class="skill-prof" data-attr="instinct" type="checkbox" /></td><td class="skill-bonus" data-attr="instinct">+0</td></tr>
+            <tr><td><span class="info-label" tabindex="0">Urban Navigation<span class="tooltip"><strong>Urban Navigation</strong>Moving through cities, tunnels, rooftops, traffic, crowds and underground routes. Uses the better modifier between Instinct and Mind.<code>Best of Instinct/Mind modifier + proficiency if checked</code></span></span></td><td>Instinct/Mind</td><td><input class="skill-prof" data-attr="instinct,mind" type="checkbox" /></td><td class="skill-bonus" data-attr="instinct,mind">+0</td></tr>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Expressions</h2>
+      <div id="expressions"></div>
+      <button onclick="addExpression()">Add Expression</button>
+    </section>
+
+    <section class="section">
+      <h2>Notes</h2>
+      <textarea id="notes" placeholder="Backstory, combat notes, inventory, relationships, scars, rivalries..."></textarea>
+    </section>
+
+    <section class="section">
+      <h2>Save / Load</h2>
+      <div class="grid-3">
+        <div><label>Saved Characters</label><select id="characterSelect" onchange="switchCharacter()"></select></div>
+        <div><label>New Character Name</label><input id="newCharacterName" placeholder="Character name" /></div>
+        <div><label>Storage Status</label><input id="storageStatus" readonly value="Auto-save active" /></div>
+      </div>
+      <div class="button-row" style="margin-top: 12px;">
+        <button onclick="newCharacter()">New Character</button>
+        <button class="secondary" onclick="duplicateCharacter()">Duplicate Current</button>
+        <button class="secondary" onclick="deleteCurrentCharacter()">Delete Current</button>
+        <button onclick="exportCurrentCharacter()">Export Character File</button>
+        <button class="secondary" onclick="document.getElementById('loadFile').click()">Import Character File</button>
+        <button class="secondary" onclick="window.print()">Print / Save as PDF</button>
+        <input id="loadFile" type="file" accept=".json" style="display:none" onchange="importCharacter(event)" />
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Account</h2>
+      <p style="color: var(--muted); margin-top: 0;">Sign in with Netlify Identity to keep separate saved characters for your account.</p>
+      <div class="grid-3">
+        <div><label>Signed in as</label><input id="signedInUser" readonly value="Guest" /></div>
+        <div><label>Account status</label><input id="accountStatus" readonly value="Not signed in" /></div>
+        <div><label>Sync mode</label><input id="syncMode" readonly value="Guest local storage" /></div>
+      </div>
+      <div class="grid-3" style="margin-top: 12px;">
+        <div><label>Remote sync status</label><input id="remoteSyncStatus" readonly value="Disabled" /></div>
+        <div><label>Remote file</label><input id="remoteFilePath" readonly value="None" /></div>
+        <div></div>
+      </div>
+      <div class="button-row" style="margin-top: 12px; justify-content: flex-start;">
+        <button onclick="window.location.href='/signin'">Go to Account</button>
+        <button onclick="syncToAccount()">Sync to Account</button>
+        <button class="secondary" onclick="loadFromAccount()">Load from Account</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <script>
+    function num(id) {
+      return Number(document.getElementById(id).value) || 0;
+    }
+
+    function floorHalf(value) {
+      return Math.floor(value / 2);
+    }
+
+    function attributeModifier(score) {
+      return Math.floor((score - 5) / 2);
+    }
+
+    function signed(value) {
+      return value >= 0 ? '+' + value : String(value);
+    }
+
+    function guestModeActive() {
+      return localStorage.getItem('andariinGuestMode') === 'true';
+    }
+
+    function clearGuestMode() {
+      localStorage.removeItem('andariinGuestMode');
+    }
+
+    let currentIdentityUser = null;
+
+    function getUserStorageKey() {
+      return 'expressionistCharacters_' + (currentIdentityUser?.email || 'guest');
+    }
+
+    function getCurrentCharacterKey() {
+      return getUserStorageKey() + '_currentId';
+    }
+
+    function updateAccountUI() {
+      const signedInUser = document.getElementById('signedInUser');
+      const accountStatus = document.getElementById('accountStatus');
+      const syncMode = document.getElementById('syncMode');
+      const storageStatus = document.getElementById('storageStatus');
+      const remoteSyncStatus = document.getElementById('remoteSyncStatus');
+      const remoteFilePath = document.getElementById('remoteFilePath');
+      if (signedInUser) signedInUser.value = currentIdentityUser?.email || 'Guest';
+      if (accountStatus) accountStatus.value = currentIdentityUser ? 'Signed in' : 'Not signed in';
+      if (syncMode) syncMode.value = currentIdentityUser ? 'Account-scoped storage' : 'Guest local storage';
+      if (storageStatus) storageStatus.value = currentIdentityUser ? 'Saved to signed-in account browser storage' : 'Saved to guest browser storage';
+      if (remoteSyncStatus) remoteSyncStatus.value = currentIdentityUser ? 'Ready' : 'Disabled';
+      if (remoteFilePath) remoteFilePath.value = currentIdentityUser ? 'Remote file active' : 'None';
+    }
+
+    async function getIdentityToken() {
+      const user = window.netlifyIdentity?.currentUser();
+      if (!user) return null;
+      if (user.token?.access_token) return user.token.access_token;
+      if (typeof user.jwt === 'function') {
+        try {
+          return await user.jwt(true);
+        } catch {
+          return null;
+        }
+      }
+      return null;
+    }
+
+    async function fetchWithIdentity(url, options = {}) {
+      const token = await getIdentityToken();
+      const headers = {
+        ...(options.headers || {}),
+      };
+      if (token) {
+        headers.Authorization = 'Bearer ' + token;
+      }
+      return fetch(url, { ...options, headers });
+    }
+
+    function setRemoteSyncStatus(message) {
+      const remoteSyncStatus = document.getElementById('remoteSyncStatus');
+      if (remoteSyncStatus) remoteSyncStatus.value = message;
+    }
+
+    function setRemoteFilePath(path) {
+      const remoteFilePath = document.getElementById('remoteFilePath');
+      if (remoteFilePath) remoteFilePath.value = path || 'None';
+    }
+
+    async function syncToAccount() {
+      if (!currentIdentityUser) {
+        alert('Please sign in to sync to your account.');
+        return;
+      }
+      const currentId = getCurrentCharacterId();
+      if (!currentId) {
+        alert('No current character selected to sync.');
+        return;
+      }
+      setRemoteSyncStatus('Saving...');
+      const data = {
+        currentId,
+        characters: getStoredCharacters(),
+      };
+      const res = await fetchWithIdentity('/.netlify/functions/character-sync', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        setRemoteSyncStatus('Save failed');
+        alert('Remote sync failed: ' + (result.error || res.statusText));
+        return;
+      }
+      setRemoteSyncStatus('Saved');
+      setRemoteFilePath(result.path || 'remote-characters');
+    }
+
+    async function loadFromAccount() {
+      if (!currentIdentityUser) {
+        alert('Please sign in to load account data.');
+        return;
+      }
+      setRemoteSyncStatus('Loading...');
+      const res = await fetchWithIdentity('/.netlify/functions/character-sync');
+      const result = await res.json();
+      if (!res.ok) {
+        setRemoteSyncStatus('Load failed');
+        alert('Remote load failed: ' + (result.error || res.statusText));
+        return;
+      }
+      if (result.characters) {
+        localStorage.setItem(getUserStorageKey(), JSON.stringify(result.characters));
+      }
+      if (result.currentId) {
+        localStorage.setItem(getCurrentCharacterKey(), result.currentId);
+      }
+      loadCurrentCharacter();
+      setRemoteSyncStatus('Loaded');
+      setRemoteFilePath('remote-characters/' + currentIdentityUser.email.replace(/[^a-zA-Z0-9._-]/g, '_').toLowerCase() + '.json');
+    }
+
+    function redirectIfNotSignedIn() {
+      if (guestModeActive()) {
+        return;
+      }
+      if (!currentIdentityUser && !window.location.pathname.startsWith('/signin')) {
+        window.location.href = '/signin';
+      }
+    }
+
+    function initIdentity() {
+      if (!window.netlifyIdentity) return;
+      window.netlifyIdentity.on('login', user => {
+        currentIdentityUser = user;
+        updateAccountUI();
+        loadCurrentCharacter();
+        window.netlifyIdentity.close();
+      });
+      window.netlifyIdentity.on('logout', () => {
+        currentIdentityUser = null;
+        updateAccountUI();
+        if (!window.location.pathname.startsWith('/signin')) {
+          window.location.href = '/signin';
+        }
+      });
+      window.netlifyIdentity.init();
+      currentIdentityUser = window.netlifyIdentity.currentUser();
+      updateAccountUI();
+      redirectIfNotSignedIn();
+    }
+
+
+
+    function getProficiencyBonus() {
+      const lvl = Math.max(1, Math.min(20, num('level')));
+      return 2 + Math.floor((lvl - 1) / 4);
+    }
+
+    function pointBuyCost(score) {
+      const costs = {
+        1: -4,
+        2: -3,
+        3: -2,
+        4: -1,
+        5: 0,
+        6: 1,
+        7: 2,
+        8: 3,
+        9: 4,
+        10: 5,
+        11: 7,
+        12: 9,
+        13: 12,
+        14: 15,
+        15: 19,
+        16: 24,
+        17: 30,
+        18: 37,
+        19: 45,
+        20: 55
+      };
+      return costs[Math.max(1, Math.min(20, score))] ?? 0;
+    }
+
+    function updatePointBuy() {
+      const basePoints = num('startingAttributePoints') || 20;
+      const scores = ['body', 'reflex', 'mind', 'instinct', 'presence', 'control'].map(id => num(id));
+      const spent = scores.reduce((total, score) => total + pointBuyCost(score), 0);
+      const level = Math.max(1, Math.min(20, num('level')));
+      const growthPoints = (level - 1) * 2;
+      const remaining = (basePoints + growthPoints) - spent;
+
+      document.getElementById('attributePointsSpent').textContent = spent;
+      document.getElementById('attributePointsRemaining').textContent = remaining;
+      document.getElementById('growthPointsEarned').textContent = growthPoints;
+
+      const status = document.getElementById('pointBuyStatus');
+      if (remaining < 0) {
+        status.value = 'Over budget by ' + Math.abs(remaining);
+      } else if (scores.some(score => score > 15) && level === 1) {
+        status.value = 'Level 1 max is normally 15';
+      } else {
+        status.value = 'Valid, ' + remaining + ' left';
+      }
+    }
+
+    function getEffectiveAttributes() {
+      const counts = getPathwayCounts();
+      const somaBonus = Math.min(counts.Soma, 3);
+      const neuroBonus = Math.min(counts.Neuro, 3);
+      const bioBonus = Math.min(counts.Bio, 3);
+      const energeticBonus = Math.min(counts.Energetic, 3);
+      const conceptBonus = Math.min(counts.Concept, 3);
+
+      return {
+        body: num('body') + somaBonus + bioBonus,
+        reflex: num('reflex') + energeticBonus,
+        mind: num('mind') + neuroBonus,
+        instinct: num('instinct') + neuroBonus,
+        presence: num('presence'),
+        control: num('control') + conceptBonus
+      };
+    }
+
+    function getPathwayCounts() {
+      const counts = { Soma: 0, Neuro: 0, Bio: 0, Energetic: 0, Concept: 0 };
+      document.querySelectorAll('.expr-pathway').forEach(select => {
+        counts[select.value] = (counts[select.value] || 0) + 1;
+      });
+      return counts;
+    }
+
+    function updateSkillBonuses() {
+      const attrs = getEffectiveAttributes();
+      const prof = getProficiencyBonus();
+
+      document.querySelectorAll('.skill-bonus').forEach(cell => {
+        const attrKeys = cell.dataset.attr.split(',');
+        const bestMod = Math.max(...attrKeys.map(key => attributeModifier(attrs[key])));
+        const checkbox = cell.parentElement.querySelector('.skill-prof');
+        const total = bestMod + (checkbox.checked ? prof : 0);
+        cell.textContent = signed(total);
+      });
+    }
+
+    function calculateStats() {
+      const counts = getPathwayCounts();
+      const cappedCounts = {
+        Soma: Math.min(counts.Soma, 3),
+        Neuro: Math.min(counts.Neuro, 3),
+        Bio: Math.min(counts.Bio, 3),
+        Energetic: Math.min(counts.Energetic, 3),
+        Concept: Math.min(counts.Concept, 3)
+      };
+
+      document.getElementById('somaCount').textContent = counts.Soma;
+      document.getElementById('neuroCount').textContent = counts.Neuro;
+      document.getElementById('bioCount').textContent = counts.Bio;
+      document.getElementById('energeticCount').textContent = counts.Energetic;
+      document.getElementById('conceptCount').textContent = counts.Concept;
+
+      const stackedPenalty = Object.values(counts).reduce((total, count) => total + Math.max(0, count - 1), 0);
+      document.getElementById('pathwayAgPenalty').textContent = '+' + stackedPenalty;
+
+      const attrs = getEffectiveAttributes();
+      const body = attrs.body;
+      const reflex = attrs.reflex;
+      const mind = attrs.mind;
+      const instinct = attrs.instinct;
+      const presence = attrs.presence;
+      const control = attrs.control;
+      const level = Math.max(1, Math.min(20, num('level')));
+
+      const bodyMod = attributeModifier(body);
+      const reflexMod = attributeModifier(reflex);
+      const mindMod = attributeModifier(mind);
+      const instinctMod = attributeModifier(instinct);
+      const presenceMod = attributeModifier(presence);
+      const controlMod = attributeModifier(control);
+      const prof = getProficiencyBonus();
+
+      const maxPowerLevel = level + 1;
+      const levelSurge = Math.floor((level * level) / 4);
+
+      const health = 10 + body + (level * 3) + Math.floor((level * level) / 5) + cappedCounts.Soma + num('healthManual');
+      const initiative = reflexMod + instinctMod + num('initiativeManual');
+      const stability = 10 + level + Math.floor((level * level) / 10) + presenceMod + controlMod + cappedCounts.Bio + num('stabilityManual');
+      const aetherCapacity = 20 + (level * 3) + levelSurge + bodyMod + (controlMod * 2) + num('aetherCapacityManual');
+      const aetherRecovery = Math.max(1, 1 + Math.floor(level / 3) + Math.floor((bodyMod + presenceMod + controlMod) / 2) + num('aetherRecoveryManual'));
+      const expressionAccuracy = controlMod + Math.max(reflexMod, mindMod) + prof + cappedCounts.Energetic + num('expressionAccuracyManual');
+      const breakThreshold = 10 + Math.floor(level / 2) + Math.floor(level / 5) + presenceMod + controlMod + cappedCounts.Concept + num('breakThresholdManual');
+
+      document.getElementById('health').textContent = health;
+      document.getElementById('initiative').textContent = signed(initiative);
+      document.getElementById('stability').textContent = stability;
+      document.getElementById('aetherCapacity').textContent = aetherCapacity;
+      document.getElementById('aetherRecovery').textContent = aetherRecovery;
+      document.getElementById('expressionAccuracy').textContent = signed(expressionAccuracy);
+      document.getElementById('breakThreshold').textContent = signed(breakThreshold);
+      document.getElementById('proficiencyBonus').textContent = signed(getProficiencyBonus());
+      document.getElementById('maxPowerLevel').textContent = maxPowerLevel;
+
+      updatePointBuy();
+      updateSkillBonuses();
+      updateAetherBar();
+    }
+
+    function updateAetherBar() {
+      const current = num('currentAether');
+      const capacity = Number(document.getElementById('aetherCapacity').textContent) || 1;
+      const percent = Math.min(150, Math.round((current / capacity) * 100));
+      const bar = document.getElementById('aetherBar');
+      const status = document.getElementById('thresholdStatus');
+
+      bar.style.width = Math.min(percent, 100) + '%';
+
+      if (percent >= 100) {
+        bar.style.background = '#000000';
+        status.value = '100%+ BREAK CHECK';
+      } else if (percent >= 85) {
+        bar.style.background = 'var(--danger)';
+        status.value = '85% Instability Checks';
+      } else if (percent >= 70) {
+        bar.style.background = 'var(--warning)';
+        status.value = '70% Manifestation Penalties';
+      } else if (percent >= 50) {
+        bar.style.background = '#eab308';
+        status.value = '50% Reduced Precision';
+      } else if (percent >= 25) {
+        bar.style.background = '#84cc16';
+        status.value = '25% Minor Strain';
+      } else {
+        bar.style.background = 'var(--good)';
+        status.value = 'Stable';
+      }
+    }
+
+    function addAether() {
+      const current = num('currentAether');
+      const add = num('addAetherAmount');
+      document.getElementById('currentAether').value = current + add;
+      document.getElementById('addAetherAmount').value = 0;
+      updateAetherBar();
+    }
+
+    function recoverAether() {
+      const current = num('currentAether');
+      const recovery = Number(document.getElementById('aetherRecovery').textContent) || 0;
+      document.getElementById('currentAether').value = Math.max(0, current - recovery);
+      updateAetherBar();
+    }
+
+    function resetAether() {
+      document.getElementById('currentAether').value = 0;
+      updateAetherBar();
+    }
+
+    function addStylePoints() {
+      const current = num('stylePoints');
+      const amount = num('stylePointAmount');
+      document.getElementById('stylePoints').value = current + amount;
+    }
+
+    function spendStylePoints() {
+      const current = num('stylePoints');
+      const amount = num('stylePointAmount');
+      document.getElementById('stylePoints').value = Math.max(0, current - amount);
+    }
+
+    function resetStylePoints() {
+      document.getElementById('stylePoints').value = 0;
+    }
+
+    function addExpression(data = {}) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'expression-card';
+      wrapper.innerHTML = `
+        <div class="grid-3">
+          <div><label>Expression Name</label><input class="expr-name" value="${data.name || ''}" /></div>
+          <div><label>Pathway</label><select class="expr-pathway">
+            ${['Soma','Neuro','Bio','Energetic','Concept'].map(p => `<option ${data.pathway === p ? 'selected' : ''}>${p}</option>`).join('')}
+          </select></div>
+          <div><label>Expression Die</label><select class="expr-ed">
+            ${['d4','d6','d8','d10','d12','d20'].map(d => `<option ${data.ed === d ? 'selected' : ''}>${d}</option>`).join('')}
+          </select></div>
+          <div><label>AG Die</label><select class="expr-ag">
+            ${['d4','d6','d8','d10','d12','d20'].map(d => `<option ${data.ag === d ? 'selected' : ''}>${d}</option>`).join('')}
+          </select></div>
+          <div><label>Base Manifestation Level</label><input class="expr-manifest" value="${data.manifest || ''}" /></div>
+          <div><label>Notes</label><input class="expr-short" value="${data.short || ''}" /></div>
+        </div>
+        <label style="margin-top:10px;">Applications / Limits</label>
+        <textarea class="expr-notes">${data.notes || ''}</textarea>
+        <button class="secondary" onclick="this.parentElement.remove(); calculateStats(); autoSaveCharacter();">Remove Expression</button>
+      `;
+      document.getElementById('expressions').appendChild(wrapper);
+      wrapper.querySelectorAll('input, select, textarea').forEach(el => {
+        el.addEventListener('input', () => {
+          calculateStats();
+          autoSaveCharacter();
+        });
+        el.addEventListener('change', () => {
+          calculateStats();
+          autoSaveCharacter();
+        });
+      });
+      calculateStats();
+      autoSaveCharacter();
+    }
+
+    function collectData() {
+      const data = {};
+      document.querySelectorAll('input, select, textarea').forEach(el => {
+        if (el.id && !['loadFile', 'characterSelect', 'newCharacterName', 'storageStatus'].includes(el.id)) {
+          data[el.id] = el.value;
+        }
+      });
+
+      document.querySelectorAll('.skill-prof').forEach((checkbox, index) => {
+        data['skillProf_' + index] = checkbox.checked;
+      });
+
+      data.expressions = Array.from(document.querySelectorAll('.expression-card')).map(card => ({
+        name: card.querySelector('.expr-name').value,
+        pathway: card.querySelector('.expr-pathway').value,
+        ed: card.querySelector('.expr-ed').value,
+        ag: card.querySelector('.expr-ag').value,
+        manifest: card.querySelector('.expr-manifest').value,
+        short: card.querySelector('.expr-short').value,
+        notes: card.querySelector('.expr-notes').value
+      }));
+
+      return data;
+    }
+
+    function applyData(data) {
+      Object.keys(data).forEach(key => {
+        const el = document.getElementById(key);
+        if (el && key !== 'expressions') el.value = data[key];
+      });
+
+      document.querySelectorAll('.skill-prof').forEach((checkbox, index) => {
+        checkbox.checked = !!data['skillProf_' + index];
+      });
+
+      document.getElementById('expressions').innerHTML = '';
+      if (Array.isArray(data.expressions) && data.expressions.length > 0) {
+        data.expressions.forEach(expr => addExpression(expr));
+      } else {
+        addExpression();
+      }
+
+      calculateStats();
+    }
+
+    function getStoredCharacters() {
+      try {
+        return JSON.parse(localStorage.getItem(getUserStorageKey())) || {};
+      } catch {
+        return {};
+      }
+    }
+
+    function setStoredCharacters(characters) {
+      localStorage.setItem(getUserStorageKey(), JSON.stringify(characters));
+    }
+
+    function getCurrentCharacterId() {
+      return localStorage.getItem(getCurrentCharacterKey());
+    }
+
+    function setCurrentCharacterId(id) {
+      localStorage.setItem(getCurrentCharacterKey(), id);
+    }
+
+    function createCharacterId() {
+      return 'char_' + Date.now() + '_' + Math.random().toString(16).slice(2);
+    }
+
+    function getDisplayName(data, fallback = 'Unnamed Character') {
+      return data.charName && data.charName.trim() ? data.charName.trim() : fallback;
+    }
+
+    function refreshCharacterSelect() {
+      const characters = getStoredCharacters();
+      const currentId = getCurrentCharacterId();
+      const select = document.getElementById('characterSelect');
+      select.innerHTML = '';
+
+      Object.entries(characters).forEach(([id, data]) => {
+        const option = document.createElement('option');
+        option.value = id;
+        option.textContent = getDisplayName(data);
+        if (id === currentId) option.selected = true;
+        select.appendChild(option);
+      });
+    }
+
+    function autoSaveCharacter() {
+      const currentId = getCurrentCharacterId();
+      if (!currentId) return;
+      const characters = getStoredCharacters();
+      characters[currentId] = collectData();
+      setStoredCharacters(characters);
+      refreshCharacterSelect();
+      updateAccountUI();
+    }
+
+    function loadCurrentCharacter() {
+      const characters = getStoredCharacters();
+      let currentId = getCurrentCharacterId();
+
+      if (!currentId || !characters[currentId]) {
+        currentId = createCharacterId();
+        characters[currentId] = defaultCharacterData();
+        setStoredCharacters(characters);
+        setCurrentCharacterId(currentId);
+      }
+
+      applyData(characters[currentId]);
+      refreshCharacterSelect();
+    }
+
+    function switchCharacter() {
+      const select = document.getElementById('characterSelect');
+      if (!select.value) return;
+      setCurrentCharacterId(select.value);
+      const characters = getStoredCharacters();
+      applyData(characters[select.value]);
+      refreshCharacterSelect();
+    }
+
+    function defaultCharacterData(name = 'New Character') {
+      return {
+        charName: name,
+        alias: '',
+        level: '1',
+        age: '',
+        pathways: '',
+        buildQuality: 'Well Built',
+        body: '5',
+        reflex: '5',
+        mind: '5',
+        instinct: '5',
+        presence: '5',
+        control: '5',
+        startingAttributePoints: '20',
+        currentAether: '0',
+        addAetherAmount: '0',
+        stylePoints: '0',
+        stylePointAmount: '1',
+        notes: '',
+        expressions: []
+      };
+    }
+
+    function newCharacter() {
+      const nameInput = document.getElementById('newCharacterName');
+      const name = nameInput.value.trim() || 'New Character';
+      const characters = getStoredCharacters();
+      const id = createCharacterId();
+      characters[id] = defaultCharacterData(name);
+      setStoredCharacters(characters);
+      setCurrentCharacterId(id);
+      nameInput.value = '';
+      applyData(characters[id]);
+      refreshCharacterSelect();
+      autoSaveCharacter();
+    }
+
+    function duplicateCharacter() {
+      const currentId = getCurrentCharacterId();
+      const characters = getStoredCharacters();
+      if (!currentId || !characters[currentId]) return;
+      const id = createCharacterId();
+      const copy = JSON.parse(JSON.stringify(collectData()));
+      copy.charName = getDisplayName(copy) + ' Copy';
+      characters[id] = copy;
+      setStoredCharacters(characters);
+      setCurrentCharacterId(id);
+      applyData(copy);
+      refreshCharacterSelect();
+    }
+
+    function deleteCurrentCharacter() {
+      const characters = getStoredCharacters();
+      const currentId = getCurrentCharacterId();
+      if (!currentId || !characters[currentId]) return;
+      if (!confirm('Delete this character from this browser? Export a backup first if you want to keep it.')) return;
+
+      delete characters[currentId];
+      const remainingIds = Object.keys(characters);
+      if (remainingIds.length === 0) {
+        const id = createCharacterId();
+        characters[id] = defaultCharacterData();
+        setCurrentCharacterId(id);
+      } else {
+        setCurrentCharacterId(remainingIds[0]);
+      }
+      setStoredCharacters(characters);
+      loadCurrentCharacter();
+    }
+
+    function exportCurrentCharacter() {
+      const data = collectData();
+      const filename = getDisplayName(data, 'expressionist-character').replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.json';
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importCharacter(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const data = JSON.parse(e.target.result);
+        const characters = getStoredCharacters();
+        const id = createCharacterId();
+        characters[id] = data;
+        setStoredCharacters(characters);
+        setCurrentCharacterId(id);
+        applyData(data);
+        refreshCharacterSelect();
+        autoSaveCharacter();
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    function attachAutoSaveListeners() {
+      document.querySelectorAll('input, select, textarea').forEach(el => {
+        if (el.id === 'loadFile' || el.id === 'characterSelect' || el.id === 'newCharacterName') return;
+        el.addEventListener('input', () => {
+          calculateStats();
+          autoSaveCharacter();
+        });
+        el.addEventListener('change', () => {
+          calculateStats();
+          autoSaveCharacter();
+        });
+      });
+    }
+
+    attachAutoSaveListeners();
+    initIdentity();
+    loadCurrentCharacter();
+    calculateStats();
+  </script>
+</body>
+</html>
