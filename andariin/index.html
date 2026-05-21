@@ -123,9 +123,14 @@
       }
     }
 
+    function redirectToAppRoot() {
+      const path = window.location.pathname.replace(/\/index\.html$/, '/');
+      window.location.href = window.location.origin + path;
+    }
+
     async function continueAsGuest() {
       localStorage.setItem('andariinGuestMode', 'true');
-      window.location.href = '/';
+      redirectToAppRoot();
     }
 
     function initIdentity() {
@@ -133,7 +138,7 @@
       window.netlifyIdentity.on('login', () => {
         updateUI();
         localStorage.removeItem('andariinGuestMode');
-        window.location.href = '/';
+        redirectToAppRoot();
       });
       window.netlifyIdentity.on('logout', () => {
         updateUI();
@@ -142,7 +147,7 @@
       updateUI();
       checkIdentity();
       if (window.netlifyIdentity.currentUser()) {
-        window.location.href = '/';
+        redirectToAppRoot();
       }
     }
 
