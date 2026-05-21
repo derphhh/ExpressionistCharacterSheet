@@ -478,8 +478,30 @@
         <input id="loadFile" type="file" accept=".json" style="display:none" onchange="importCharacter(event)" />
       </div>
     </section>
+
+    <section class="section">
+      <h2>Account</h2>
+      <p style="color: var(--muted); margin-top: 0;">Sign in with Netlify Identity to keep separate saved characters for your account.</p>
+      <div class="grid-3">
+        <div><label>Signed in as</label><input id="signedInUser" readonly value="Guest" /></div>
+        <div><label>Account status</label><input id="accountStatus" readonly value="Not signed in" /></div>
+        <div><label>Sync mode</label><input id="syncMode" readonly value="Guest local storage" /></div>
+      </div>
+      <div class="grid-3" style="margin-top: 12px;">
+        <div><label>Remote sync status</label><input id="remoteSyncStatus" readonly value="Disabled" /></div>
+        <div><label>Remote file</label><input id="remoteFilePath" readonly value="None" /></div>
+        <div></div>
+      </div>
+      <div class="button-row" style="margin-top: 12px; justify-content: flex-start;">
+        <button onclick="signIn()">Sign In</button>
+        <button class="secondary" onclick="signOut()">Sign Out</button>
+        <button onclick="syncToAccount()">Sync to Account</button>
+        <button class="secondary" onclick="loadFromAccount()">Load from Account</button>
+      </div>
+    </section>
   </main>
 
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
   <script>
     function num(id) {
       return Number(document.getElementById(id).value) || 0;
@@ -495,6 +517,154 @@
 
     function signed(value) {
       return value >= 0 ? '+' + value : String(value);
+    }
+
+    let currentIdentityUser = null;
+
+    function getUserStorageKey() {
+      return 'expressionistCharacters_' + (currentIdentityUser?.email || 'guest');
+    }
+
+    function getCurrentCharacterKey() {
+      return getUserStorageKey() + '_currentId';
+    }
+
+    function updateAccountUI() {
+      const signedInUser = document.getElementById('signedInUser');
+      const accountStatus = document.getElementById('accountStatus');
+      const syncMode = document.getElementById('syncMode');
+      const storageStatus = document.getElementById('storageStatus');
+      const remoteSyncStatus = document.getElementById('remoteSyncStatus');
+      const remoteFilePath = document.getElementById('remoteFilePath');
+      if (signedInUser) signedInUser.value = currentIdentityUser?.email || 'Guest';
+      if (accountStatus) accountStatus.value = currentIdentityUser ? 'Signed in' : 'Not signed in';
+      if (syncMode) syncMode.value = currentIdentityUser ? 'Account-scoped storage' : 'Guest local storage';
+      if (storageStatus) storageStatus.value = currentIdentityUser ? 'Saved to signed-in account browser storage' : 'Saved to guest browser storage';
+      if (remoteSyncStatus) remoteSyncStatus.value = currentIdentityUser ? 'Ready' : 'Disabled';
+      if (remoteFilePath) remoteFilePath.value = currentIdentityUser ? 'Remote file active' : 'None';
+    }
+
+    async function getIdentityToken() {
+      const user = window.netlifyIdentity?.currentUser();
+      if (!user) return null;
+      if (user.token?.access_token) return user.token.access_token;
+      if (typeof user.jwt === 'function') {
+        try {
+          return await user.jwt(true);
+        } catch {
+          return null;
+        }
+      }
+      return null;
+    }
+
+    async function fetchWithIdentity(url, options = {}) {
+      const token = await getIdentityToken();
+      const headers = {
+        ...(options.headers || {}),
+      };
+      if (token) {
+        headers.Authorization = 'Bearer ' + token;
+      }
+      return fetch(url, { ...options, headers });
+    }
+
+    function setRemoteSyncStatus(message) {
+      const remoteSyncStatus = document.getElementById('remoteSyncStatus');
+      if (remoteSyncStatus) remoteSyncStatus.value = message;
+    }
+
+    function setRemoteFilePath(path) {
+      const remoteFilePath = document.getElementById('remoteFilePath');
+      if (remoteFilePath) remoteFilePath.value = path || 'None';
+    }
+
+    async function syncToAccount() {
+      if (!currentIdentityUser) {
+        alert('Please sign in to sync to your account.');
+        return;
+      }
+      const currentId = getCurrentCharacterId();
+      if (!currentId) {
+        alert('No current character selected to sync.');
+        return;
+      }
+      setRemoteSyncStatus('Saving...');
+      const data = {
+        currentId,
+        characters: getStoredCharacters(),
+      };
+      const res = await fetchWithIdentity('/.netlify/functions/character-sync', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        setRemoteSyncStatus('Save failed');
+        alert('Remote sync failed: ' + (result.error || res.statusText));
+        return;
+      }
+      setRemoteSyncStatus('Saved');
+      setRemoteFilePath(result.path || 'remote-characters');
+    }
+
+    async function loadFromAccount() {
+      if (!currentIdentityUser) {
+        alert('Please sign in to load account data.');
+        return;
+      }
+      setRemoteSyncStatus('Loading...');
+      const res = await fetchWithIdentity('/.netlify/functions/character-sync');
+      const result = await res.json();
+      if (!res.ok) {
+        setRemoteSyncStatus('Load failed');
+        alert('Remote load failed: ' + (result.error || res.statusText));
+        return;
+      }
+      if (result.characters) {
+        localStorage.setItem(getUserStorageKey(), JSON.stringify(result.characters));
+      }
+      if (result.currentId) {
+        localStorage.setItem(getCurrentCharacterKey(), result.currentId);
+      }
+      loadCurrentCharacter();
+      setRemoteSyncStatus('Loaded');
+      setRemoteFilePath('remote-characters/' + currentIdentityUser.email.replace(/[^a-zA-Z0-9._-]/g, '_').toLowerCase() + '.json');
+    }
+
+    function initIdentity() {
+      if (!window.netlifyIdentity) return;
+      window.netlifyIdentity.on('login', user => {
+        currentIdentityUser = user;
+        updateAccountUI();
+        loadCurrentCharacter();
+        window.netlifyIdentity.close();
+      });
+      window.netlifyIdentity.on('logout', () => {
+        currentIdentityUser = null;
+        updateAccountUI();
+        loadCurrentCharacter();
+      });
+      window.netlifyIdentity.init();
+      currentIdentityUser = window.netlifyIdentity.currentUser();
+      updateAccountUI();
+    }
+
+    function signIn() {
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.open();
+      } else {
+        alert('Netlify Identity is not available. Deploy on Netlify and enable Identity to use sign-in.');
+      }
+    }
+
+    function signOut() {
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.logout();
+      }
     }
 
     function getProficiencyBonus() {
@@ -801,22 +971,22 @@
 
     function getStoredCharacters() {
       try {
-        return JSON.parse(localStorage.getItem('expressionistCharacters')) || {};
+        return JSON.parse(localStorage.getItem(getUserStorageKey())) || {};
       } catch {
         return {};
       }
     }
 
     function setStoredCharacters(characters) {
-      localStorage.setItem('expressionistCharacters', JSON.stringify(characters));
+      localStorage.setItem(getUserStorageKey(), JSON.stringify(characters));
     }
 
     function getCurrentCharacterId() {
-      return localStorage.getItem('currentExpressionistCharacterId');
+      return localStorage.getItem(getCurrentCharacterKey());
     }
 
     function setCurrentCharacterId(id) {
-      localStorage.setItem('currentExpressionistCharacterId', id);
+      localStorage.setItem(getCurrentCharacterKey(), id);
     }
 
     function createCharacterId() {
@@ -849,8 +1019,7 @@
       characters[currentId] = collectData();
       setStoredCharacters(characters);
       refreshCharacterSelect();
-      const status = document.getElementById('storageStatus');
-      if (status) status.value = 'Saved to this browser';
+      updateAccountUI();
     }
 
     function loadCurrentCharacter() {
@@ -995,6 +1164,7 @@
     }
 
     attachAutoSaveListeners();
+    initIdentity();
     loadCurrentCharacter();
     calculateStats();
   </script>
