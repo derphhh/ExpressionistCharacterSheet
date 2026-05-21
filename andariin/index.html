@@ -89,20 +89,19 @@
     }
 
     async function checkIdentity() {
-      try {
-        const res = await fetch('/.netlify/identity');
-        if (res.ok) {
-          identityAvailable = true;
-          setIdentityStatus('Identity available');
-          setGuestButton(false);
-          return;
-        }
-      } catch (e) {
-        // ignore
+      // If netlify-identity-widget didn't load, Identity is unavailable
+      if (!window.netlifyIdentity) {
+        identityAvailable = false;
+        setIdentityStatus('Identity widget not loaded. Deploy to Netlify.');
+        setGuestButton(true);
+        return;
       }
-      identityAvailable = false;
-      setIdentityStatus('Identity not available. Deploy on Netlify and enable Identity.');
-      setGuestButton(true);
+      
+      // Widget is loaded, assume Identity is available
+      // (it will fail gracefully if not enabled on Netlify)
+      identityAvailable = true;
+      setIdentityStatus('Identity ready');
+      setGuestButton(false);
     }
 
     function signIn() {
